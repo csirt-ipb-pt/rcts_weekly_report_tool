@@ -1,0 +1,45 @@
+version: '3.7'
+
+volumes:
+  Weekly_Reports:
+    driver: local
+
+networks:
+  testing_net:
+    ipam:
+      config:
+        - subnet: 172.28.1.0/29
+
+services:
+
+  weekly-reports-nginx:
+    container_name: Nginx
+    build: ./nginx/.
+    image: weekly-reports-nginx:1.0
+    networks:
+        testing_net:
+            ipv4_address: 172.28.1.2
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on: 
+      - weekly-reports
+
+  weekly-reports:
+    container_name: Weekly_Reports
+    build: .
+    image: weekly-reports:1.0
+    networks:
+        testing_net:
+            ipv4_address: 172.28.1.3
+#    ports:
+#      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - Weekly_Reports:/src/db
+    command: sh -c "python3 manage.py makemigrations | python3 manage.py migrate | python3 manage.py runserver 0.0.0.0:8000"
+    environment: 
+#      - DEBUG=0
+#      - SECRET_KEY=samplesecretkey123
+      - ALLOWED_HOSTS=*
+      - PASSWORD=randompassword123

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2><strong> RCTS Weekly Reports </strong></h2>
+    <hr>
+    <form class="form-inline my-2 my-lg-0">
+        <div class="input-group mb-3">
+            <input type="search" class="form-control" placeholder="Search for IPs" aria-label="Search" aria-describedby="basic-addon2" name="search">
+            <div class="input-group-append">
+              <button class="btn btn-outline-success my-2 my-sm-0" type="button">Search</button>
+            </div>
+        </div>
+    </form>
+    {% if search_result %}
+        {% for values in search_result %}
+            {% if values %}
+                <div class="d-flex justify-content-center">
+                    <p><strong>{{ values }}</strong></p>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    <br>
+    <p>Welcome <strong>{{ user.username }}</strong>, have a nice day!</p>
+
+    <div class="alert alert-warning" role="alert">
+        <h3><strong> IMPORTANT! </strong></h3>
+        Before uploading the files, make sure to extract the reports from the zip file, open and save them with the correct format (.csv), otherwise the script won't be able to read the files!<br>
+        Also make sure not to upload the files into the wrong fields.
+    </div>
+    <div class="alert alert-primary" role="alert">
+        <h3><strong> NOTICE! </strong></h3>
+        After uploading the (.csv) file, a script will extract the information, import it to the database, delete the original file, and a summarized report will be displayed in the view.<br>
+        Below, there's a download button which will give a (.txt) file containing the summarized information.<br>
+        After downloading the file, it will be removed from the server.
+    </div>
+    <div class="row">
+        <div class="col d-flex justify-content-start">
+            <div class="col">
+                <p><strong> Total Malware Reports Registered:</strong> {{ Mal }}</p>
+                <p><strong> Total Vulnerability Reports Registered:</strong> {{ Vul }}</p>
+                <p><strong> Total Other Reports Registered:</strong> {{ Other }}</p>
+                <p><strong> Total Users Registered:</strong> {{ count }}</p>
+            </div>
+        </div>
+        <div class="col d-flex justify-content-end">
+            {% if Mal or Vul or Other %}
+                <div class="col">
+                    <div class="col d-flex justify-content-start">
+                        <h3> Extract Info </h3>
+                    </div>
+                    <div class="col d-flex justify-content-start">
+                        <p><strong> Download all records from each db table in separate .csv files. </strong></p>
+                    </div>
+                    <div class="col d-flex justify-content-start">
+                        <a href=" {% url 'extract' %}" class="btn btn-primary float-right"> Download </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% if Pie %}
+        <hr>
+        <h3>Network Accidents</h3>
+        <div class="row">
+            <div class="col d-flex justify-content-start">
+                <div class="table-responsive-md">
+                    <table class="table table-hover table-borderless">
+                        <thead class="thead-dark">
+                            <tr class="bg-dark text-white">
+                                <th scope="col"> Network </th><th scope="col"> Other </th><th scope="col"> Malware </th><th scope="col"> Vulnerability </th><th scope="col"> Total of Accidents </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, values in Table.items %}
+                                <tr class="table-light"><td>{{ key }}</td>
+                                    {% for v in values %}
+                                        <td>{{ v }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            <tr class="table-primary">
+                                <td><strong> Total </strong></td>
+                                {% for x in Total %}
+                                    <td>{{ x }}</td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col d-flex justify-content-end">
+                <div class="col">
+                    <div id="container">
+                        <canvas id="pie-chart" width="50" height="50"></canvas>
+                    </div>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+                    <script>
+                        var config = {
+                            type: 'pie',
+                            data: {
+                                datasets: [{
+                                    data: [{% for key, values in Pie.items %}'{{ values }}',{% endfor %}],
+                                    backgroundColor: [{% for i in colors %}'{{ i }}',{% endfor %}],
+                                    label: 'Networks'
+                                }],
+                            labels: [{% for key, values in Pie.items %}'{{ key }}',{% endfor %}]
+                            },
+                            options: {
+                                responsive: true
+                            }
+                        };
+                        window.onload = function() {
+                            var ctx = document.getElementById('pie-chart').getContext('2d');
+                            window.myPie = new Chart(ctx, config);
+                        };
+                    </script>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <hr>
+    <h3>IPv4 Network Listing</h3>
+    <div class="col">
+        <div class="table-responsive-md">
+            <table class="table table-hover table-borderless">
+                <thead class="thead-dark">
+                    <tr class="bg-dark text-white">
+                        <th scope="col"> Network </th><th scope="col"> Host Range Beginning </th><th scope="col"> Host Range Ending </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, values in ip.items %}
+                        <tr class="table-light"><td>{{ key }}</td>
+                            {% for v in values %}
+                                <td>{{ v }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block style %}
+    class="bg-dark"><hr>
+{% endblock %}
+
+{% block footer %}
+    <a class="scroll_up_button btn btn-outline-light btn-sm" href="#top"><strong>Top</strong></a>
+{% endblock %}

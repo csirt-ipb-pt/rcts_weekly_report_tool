@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{%block title%}
+    - Malware Reports
+{%endblock%}
+
+{% block content %}
+    <h3><strong> Malware Reports </strong></h3>
+    <hr>
+    <form class="form-inline my-2 my-lg-0">
+        <div class="input-group mb-3">
+            <input type="search" class="form-control" placeholder="Search for IPs or Networks" aria-label="Search" aria-describedby="basic-addon2" name="search">
+            <div class="input-group-append">
+              <button class="btn btn-outline-success my-2 my-sm-0" type="button">Search</button>
+            </div>
+        </div>
+    </form>
+    <br>
+    <h3>Malware Reports Upload</h3>
+    <form method="POST" enctype="multipart/form-data">{% csrf_token %}
+        <label class="btn btn-outline-dark my-2 my-sm-0" for="my-file-selector">
+            <input id="my-file-selector" type="file" name="mal" style="display:none">
+            Browse...
+        </label>
+        <button class="btn btn-success my-2 my-sm-0" type="submit">Upload File</button>
+        {% if data1 %}
+            <hr><br>
+            <div class="alert alert-light" role="alert">
+                {% for instance in data1 %}
+                    {% if instance == "')" %}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Something went wrong!<br>Check the logs!</strong>
+                        </div>
+                    {% else %}
+                        <p>{{ instance }}</p>
+                    {% endif%}
+                    {% if instance == "" %}
+                        <a href=" {% url 'down_mal' %}" download class="btn btn-primary float-right"> Download </a>
+                    {% endif%}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </form>
+    <hr>
+    {% if Mal %}
+        <h3>Results:</h3>
+        <p><strong>Total Malware Reports Found:</strong> {{ Count2 }}</p>
+    {% else %}
+        <h3> Malware Reports Listing </h3>
+        <p><strong>Total Malware Reports:</strong> {{ Count1 }}</p>
+    {% endif %}
+    <div class="table-responsive-md">
+        <table class="table table-hover table-borderless">
+            <thead class="thead-dark">
+              <tr class="bg-dark text-white">
+                <th scope="col">IP</th><th scope="col">Network</th><th scope="col">First Recorded Date</th><th scope="col">Last Recorded Date</th><th scope="col">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+                {% for mal in Mal %}
+                    <tr class="table-light"><td>{{ mal.ip }}</td><td>{{mal.rede}}</td><td>{{mal.data_1}}</td><td>{{mal.data_2}}</td><td>{{mal.count}}</td></tr>
+                {% empty %}
+                    {% for instance in object_list %}
+                        <tr class="table-light"><td>{{ instance.ip }}</td><td>{{instance.rede}}</td><td>{{instance.data_1}}</td><td>{{instance.data_2}}</td><td>{{instance.count}}</td></tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if Mal %}
+    {% else %}
+        <div class="d-flex justify-content-center">
+            {% if object_list.has_other_pages %}
+                <ul class="pagination">
+                    {% if object_list.has_previous %}
+                        <li><a href="?page={{ object_list.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a></li>
+                        {% if object_list.number > 3 %}
+                            <li><a href="?page={{ '1' }}" class="btn btn-light">{{ '1' }}</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li class="btn btn-outline-secondary"><span>&laquo;</span></li>
+                    {% endif %}
+                    {% for i in object_list.paginator.page_range %}
+                        {% if object_list.number == i %}
+                            <li class="btn btn-primary"><span>{{ i }} <span class="sr-only"></span></span></li>
+                        {% elif i > object_list.number|add:'-3' and i < object_list.number|add:'3' %}
+                            <li><a href="?page={{ i }}" class="btn btn-light">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if object_list.has_next %}
+                        {% if object_list.number < object_list.paginator.page_range|length|add:'-2' %}
+                            <li><a href="?page={{ object_list.paginator.page_range|length }}" class="btn btn-light">{{ object_list.paginator.page_range|length }}</a></li>
+                        {% endif %}
+                        <li><a href="?page={{ object_list.next_page_number }}" class="btn btn-outline-primary">&raquo;</a></li>
+                    {% else %}
+                        <li class="btn btn-outline-secondary"><span>&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block style %}
+    {% if Mal %}
+        {% if Mal|length > 15 %}
+            class="bg-dark"><hr>
+        {% else %}
+            class="text-white">
+        {% endif %}
+    {% elif object_list|length > 15 %}
+        class="bg-dark"><hr>
+    {% else %}
+        class="text-white">
+    {% endif %}
+{% endblock %}
+
+{% block footer %}
+    {% if Mal %}
+        {% if Mal|length > 15 %}
+            <a class="scroll_up_button btn btn-outline-light btn-sm" href="#top"><strong>Top</strong></a>
+        {% endif %}
+    {% elif object_list|length > 15 %}
+        <a class="scroll_up_button btn btn-outline-light btn-sm" href="#top"><strong>Top</strong></a>
+    {% endif %}
+{% endblock %}
