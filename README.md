@@ -45,7 +45,7 @@ Before building the containers, make sure to edit the following file:
 
 + ./src/network_infrastructure.py
 
-The file needs variables `network_names` and `network_range` to be filled with information from the Network Infrastructure for the tool to work.
+The file needs the variables `network_names` and `network_range` to be filled with information from the Network Infrastructure for the tool to work.
 
 `network_names` is a list that contains the names of the networks.
 
@@ -58,6 +58,60 @@ network_names = ('Network1', 'Network2')
 
 network_range = dict([('Network1', ('10.1.1.0', '10.1.1.255')), ('Network2', ('10.1.2.0', '10.1.2.255'))])
 ```
+
+### Network Structure
+
+In some cases, it may happen that in a Network range, there is another Network or two inside that range.
+
++ EX:
+
+```
+network_range = dict([('Network_1', ('172.23.0.0', '172.23.255.255')), ('Network_2', ('172.23.7.0', '172.23.7.255')), ('Network_3', ('172.23.16.0', '172.23.17.255')), ('Network_4', ('172.24.4.0', '172.24.4.255'))])
+```
+
+Make sure that when defining the `network_names` and `network_range` variables that the Networks inside another Network range go immediately after it, like on the example.
+
+In those cases, we need to adapt the following function on three different scripts, other.py, vul.py and mal.py, in order for it to work correctly.
+
+```
+def ListThem(ip, rede):
+    for z in ip:
+        for i in range(0, len(network_names)):
+            x = tuple(network_range[network_names[i]])
+            if check_ipv4_in(z, *x) == True:
+
+                if network_names[i] == 'Network_1':
+                    w = tuple(network_range[network_names[i + 1]])
+                    y = tuple(network_range[network_names[i + 2]])
+
+                    if check_ipv4_in(z, *w) == True:
+                        rede[z] = network_names[i + 1]
+                        break
+                    
+                    elif check_ipv4_in(z, *y) == True:
+                        rede[z] = network_names[i + 2]
+                        break
+                    
+                    else:
+                        rede[z] = network_names[i]
+                        break
+                
+                elif network_names[i] != 'Network_1' and network_names[i] != 'Network_2' and network_names[i] != 'Network_3':
+                    rede[z] = network_names[i]
+                    break   
+            else:
+                rede[z] = ""
+```
+
+In the `ListThem` function that lists the Networks and calls the `check_ipv4_in` function to compare the IP with the Network range to identify if that IP belongs to that Network, we need to add an if condition to check the Network name. 
+
+If the Network name matches the Network with another Network or two inside that range, it will create two variables (`w` and `y`) in this case, with the next two Network names, then it will compare the IP with those Network ranges to see if it belongs to one of them.
+
+Lastly, if the two conditions return false, it will compare the IP with the original Network range.
+
+Else, if the Network name does not match the Network with another Network or two inside that range, and the Network name does not belong to one of the other two Networks, it will execute normally.
+
+Make sure to change the Network names, and create as many variables depending on how many Networks are inside that Network range.
 
 ## Creating the Container
 
