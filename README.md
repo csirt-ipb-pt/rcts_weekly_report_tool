@@ -43,11 +43,11 @@ http://weekly-reports_ip:8080/admin/
 
 Before building the containers, make sure to edit the following file:
 
-+ ./src/network_infrastructure.py
++ [src/network_infrastructure.py](./src/network_infrastructure.py)
 
 The file needs the variables `network_names` and `network_range` to be filled with information from the Network Infrastructure for the tool to work.
 
-`network_names` is a list that contains the names of the networks.
+`network_names` is a list that contains the names of the Networks.
 
 `network_range` is a dictionary. The keys are the names of the Networks, and its values are the First valid IP from the Network, and the Last valid IP from the same Network.
 
@@ -71,7 +71,7 @@ network_range = dict([('Network_1', ('172.23.0.0', '172.23.255.255')), ('Network
 
 Make sure that when defining the `network_names` and `network_range` variables that the Networks inside another Network range go immediately after it, like on the example.
 
-In those cases, we need to adapt the following function on three different scripts, other.py, vul.py and mal.py, in order for it to work correctly.
+In those cases, we need to adapt the following function on two different scripts, [src/ipv4.py](./src/ipv4.py) and [src/reports/views.py](./src/reports/views.py), in order for it to work correctly.
 
 ```
 def ListThem(ip, rede):
@@ -101,6 +101,35 @@ def ListThem(ip, rede):
                     break   
             else:
                 rede[z] = ""
+```
+
++ views.py
+
+```
+def ListThem(ip, rede):
+    for i in range(0, len(network_names)):
+        x = tuple(network_range[network_names[i]])
+        if check_ipv4_in(ip, *x) == True:
+
+            if network_names[i] == 'Network_1':
+                w = tuple(network_range[network_names[i + 1]])
+                y = tuple(network_range[network_names[i + 2]])
+
+                if check_ipv4_in(ip, *w) == True:
+                    rede[ip] = network_names[i + 1]
+                    break
+                
+                elif check_ipv4_in(ip, *y) == True:
+                    rede[ip] = network_names[i + 2]
+                    break
+                
+                else:
+                    rede[ip] = network_names[i]
+                    break
+            
+            elif network_names[i] != 'Network_1' and network_names[i] != 'Network_2' and network_names[i] != 'Network_3':
+                rede[ip] = network_names[i]
+                break
 ```
 
 In the `ListThem` function that lists the Networks and calls the `check_ipv4_in` function to compare the IP with the Network range to identify if that IP belongs to that Network, we need to add an if condition to check the Network name. 
@@ -191,7 +220,9 @@ server {
 
 The API is implemented to the Other, Malware and Vulnerabilities tables, being able to `GET` entries by their IP, `POST` new entries or `PUT` to update an existing entry.
 
-Below is an example on how to invoke the API.
+It also provides a Search API which allows the users to check if an IP belongs to any of the defined Networks.
+
+Below is an example on how to invoke the APIs.
 
 + GET
 
@@ -229,4 +260,10 @@ Below is an example on how to invoke the API.
 
     ```
     curl --insecure -u user:password -X POST https://IP:PORT/api/vul/?ip=192.168.1.3 -H 'Content-Type: application/json' -d '{"port": "11112", "rede": "Network", "data_1": "2022-05-02T20:07:23+00:00", "data_2": "2022-05-02T20:07:23+00:00", "count": "20"}'
+    ```
+
++ Search
+
+    ```
+    curl --insecure -u user:password -X GET https://IP:PORT/api/search/?ip=192.168.1.3
     ```

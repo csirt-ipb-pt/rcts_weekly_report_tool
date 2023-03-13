@@ -7,7 +7,7 @@
         <div class="input-group mb-3">
             <input type="search" class="form-control" placeholder="Search for IPs" aria-label="Search" aria-describedby="basic-addon2" name="search">
             <div class="input-group-append">
-              <button class="btn btn-outline-success my-2 my-sm-0" type="button">Search</button>
+                <input type="submit" class="btn btn-outline-success my-2 my-sm-0" value="Search">
             </div>
         </div>
     </form>
@@ -68,7 +68,7 @@
                     <table class="table table-hover table-borderless">
                         <thead class="thead-dark">
                             <tr class="bg-dark text-white">
-                                <th scope="col"> Network </th><th scope="col"> Other </th><th scope="col"> Malware </th><th scope="col"> Vulnerability </th><th scope="col"> Total of Accidents </th>
+                                <th scope="col"> Network </th><th scope="col"> Other </th><th scope="col"> Malware </th><th scope="col"> Vulnerability </th><th scope="col"> Total of Accidents</th><th scope="col"> %</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -120,7 +120,32 @@
         </div>
     {% endif %}
     <hr>
-    <h3>IPv4 Network Listing</h3>
+    <div class="row" id="net_search">
+        <div class="col d-flex justify-content-start">
+            <h3>IPv4 Network Listing</h3>
+        </div>
+        <div class="col d-flex justify-content-end">
+            <form class="form-inline my-2 my-lg-0">
+                <div class="input-group mb-3">
+                    <input type="search" class="form-control" placeholder="Check if IP belongs to a Network." aria-label="Search" aria-describedby="basic-addon2" name="search_net">
+                    <div class="input-group-append">
+                        <input type="submit" class="btn btn-outline-success my-2 my-sm-0" value="Search">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% if search_network %}
+        <br>
+        <div class="d-flex justify-content-center">
+            <p><strong>{{ search_network }}</strong></p>
+        </div>
+        <hr>
+        <script>
+            const element = document.getElementById("net_search");
+            element.scrollIntoView();
+        </script>
+    {% endif %}
     <div class="col">
         <div class="table-responsive-md">
             <table class="table table-hover table-borderless">

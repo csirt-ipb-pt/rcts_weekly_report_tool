@@ -31,13 +31,9 @@ class Mal(models.Model):
     def __str__(self):
         return self.ip
 
-class Record(models.Model):
-    email       = models.CharField("Email", max_length=100)
-    ip          = models.CharField("IP", max_length=19)
-    tipo        = models.CharField("Type", max_length=13)
-    data      = models.CharField("Date", max_length=26)
-    email_sent  = models.CharField("Email Sent Type", max_length=9)
-    status      = models.CharField("Status", max_length=11)
+class Search(models.Model):
+
+    ip          = models.CharField("IP", max_length=50) 
 
     def __str__(self):
-        return self.email
+        return self.ip

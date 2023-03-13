@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import url
 
-from reports.views import home, other_list_view, vul_list_view, mal_list_view, download_other, download_vul, download_mal, extract, OtherAPIView, MalAPIView, VulAPIView
+from reports.views import home, other_list_view, vul_list_view, mal_list_view, download_other, download_vul, download_mal, extract, OtherAPIView, MalAPIView, VulAPIView, SearchAPIView
 
 urlpatterns = [
     path('', home, name = 'home'),
@@ -32,5 +32,6 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     url('api/other/', OtherAPIView.as_view()),
     url('api/mal/', MalAPIView.as_view()),
-    url('api/vul/', VulAPIView.as_view())
+    url('api/vul/', VulAPIView.as_view()),
+    url('api/search/', SearchAPIView.as_view())
 ]

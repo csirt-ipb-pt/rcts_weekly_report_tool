@@ -15,7 +15,10 @@ RUN apk update && \
      -newkey rsa:2048 -keyout /vol/nginx-selfsigned.key \
      -out /vol/nginx-selfsigned.crt
 
+RUN openssl dhparam -out /vol/dhparams.pem 4096
+
 RUN chown nginx:nginx /vol/nginx-selfsigned.key
 RUN chown nginx:nginx /vol/nginx-selfsigned.crt
+RUN chown nginx:nginx /vol/dhparams.pem
 
 USER nginx

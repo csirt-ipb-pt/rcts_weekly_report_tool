@@ -18,3 +18,7 @@ class MalSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Mal
         fields = ['ip', 'rede', 'data_1', 'data_2', 'count']
+
+class SearchSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        fields = ['ip']

@@ -8,19 +8,57 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import Other, Vul, Mal
+from .models import Other, Vul, Mal, Search
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import OtherSerializer, MalSerializer, VulSerializer
-
+from .serializers import OtherSerializer, MalSerializer, VulSerializer, SearchSerializer
 from subprocess import run,PIPE
-from network_infrastructure import network_range
+from network_infrastructure import network_names, network_range
+from ipv4 import check_ipv4_in
 
 # Create your views here.
 path = os.getcwd() # Obtains the directory path.
 password = os.environ.get('PASSWORD') # Password to protect the content inside the zip file.
 fileToSearch = [(str(path) + '/upload/other.csv'), (str(path) + '/upload/vul.csv'), (str(path) + '/upload/mal.csv'), (str(path) + '/upload/other.txt'), (str(path) + '/upload/vul.txt'), (str(path) + '/upload/mal.txt'), (str(path) + '/upload/csv.zip'), (str(path) + '/upload/all_other.csv'), (str(path) + '/upload/all_mal.csv'), (str(path) + '/upload/all_vul.csv')] # List that joins the directory path and the subdirectories and names of the .csv files.
-ip_dict = network_range # Dictionary composed of network names, and their respective ranges.
+
+# Function that checks if the IP belongs to a network.
+def ListThem(ip, rede):
+    for i in range(0, len(network_names)):
+        x = tuple(network_range[network_names[i]])
+        if check_ipv4_in(ip, *x) == True:
+            rede[ip] = network_names[i]
+            break
+
+# Search API.
+class SearchAPIView(APIView):
+    serializer_class = SearchSerializer
+
+    def get_queryset(self):
+            search = Search.objects.all()
+            return search
+
+    def get(self, request, *args, **kwargs):
+        try:
+            ip = request.query_params.get('ip')
+            if ip != None and ip != "":
+                r = dict([])
+                try:
+                    ListThem(ip, r)
+                except:
+                    message = str(f"IP: {ip} does not belong to any of the defined Networks!")
+                    return Response(message)
+                else:
+                    if ip not in r.keys():
+                        message = str(f"IP: {ip} does not belong to any of the defined Networks!")
+                    else:
+                        message = str(f"IP: {ip} belongs to Network: {r[ip]} - {network_range[r[ip]][0]} - {network_range[r[ip]][1]}")
+                    return Response(message)
+            else:
+                message = None
+                return Response(message)
+        except:
+            message = None
+            return Response(message)
 
 # Other API.
 class OtherAPIView(APIView):
@@ -260,6 +298,14 @@ def home(request):
     int_counter = int(int_other + int_mal + int_vul)
     total = list((int_other, int_mal, int_vul, int_counter))
     color = ["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(len(list_all))]
+    try:
+        for key, values in dict_tables.items():
+            p = 100 * float(values[3])/float(total[3])
+            dict_tables[key] = (values[0], values[1], values[2], values[3], f"{round(p, 2)}%")
+        p = 100 * float(total[3])/float(total[3])
+        total = list((total[0], total[1], total[2], total[3], f"{round(p, 2)}%"))
+    except:
+        pass
     if 'search' in request.GET:
         search_term = request.GET['search']
         vulsearch = Vul.objects.all().filter(ip=search_term)
@@ -280,17 +326,33 @@ def home(request):
         search_result = list((vulsearch, malsearch, othersearch))
     else:
         search_result = None
+    if 'search_net' in request.GET:
+        search_term = request.GET['search_net']
+        r = dict([])
+        try:
+            ListThem(search_term, r)
+        except:
+            search_network = None
+        else:
+            if search_term not in r.keys():
+                search_network = str(f"IP: {search_term} does not belong to any of the defined Networks!")
+            else:
+                search_network = str(f"IP: {search_term} belongs to Network: {r[search_term]} - {network_range[r[search_term]][0]} - {network_range[r[search_term]][1]}")
+    else:
+        search_network = None
     context = {
         'count': count,
         'Mal': mal,
         'Other': other,
         'Vul': vul,
-        'ip': ip_dict,
+        'ip': network_range,
         'search_result': search_result,
+        'search_network': search_network,
         'Table': dict_tables,
         'Pie': dict_all,
         'Total': total,
-        'colors': color
+        'colors': color,
+        'nbar': 'home'
     }
     return render(request, 'home.html', context)
 
@@ -336,7 +398,8 @@ def other_list_view(request):
         'Other' : other,
         'data1':list_text,
         'Count1': count1,
-        'Count2': count2
+        'Count2': count2,
+        'nbar': 'other'
     }
     return render(request, "other/other.html", context)
 
@@ -394,7 +457,8 @@ def vul_list_view(request):
         'Vul' : vul,
         'data1':list_text,
         'Count1': count1,
-        'Count2': count2
+        'Count2': count2,
+        'nbar': 'vul'
     }
     return render(request, "vul/vul.html", context)
 
@@ -450,7 +514,8 @@ def mal_list_view(request):
         'Mal' : mal,
         'data1':list_text,
         'Count1': count1,
-        'Count2': count2
+        'Count2': count2,
+        'nbar': 'mal'
     }
     return render(request, "mal/mal.html", context)
 

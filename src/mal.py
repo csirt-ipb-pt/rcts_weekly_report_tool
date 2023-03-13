@@ -5,21 +5,12 @@ django.setup()
 import pandas as pd
 from reports.models import Mal
 from network_infrastructure import network_names, network_range
+from ipv4 import ListThem
 
 path = os.getcwd() # Obtains the directory path where the script is stored.
 filedict = dict([]) # Dictionary where the information extracted from the .csv file will be stored.
-wordlist = network_names # A list containing the names of the networks.
-
-ip_dict = network_range # Dictionary composed of network names, and their respective ranges.
-
 fileToSearch = (str(path) + '/upload/mal.csv') # Tuple that joins the directory path where the script is located and the subdirectories and name of the .csv file.
 print(fileToSearch)
-# Function that removes "." of the IPs and returns them.
-def convert_ipv4(ip):
-    return tuple(int(n) for n in ip.split('.'))
-# Function that compares the IP with the Network range.
-def check_ipv4_in(addr, start, end):
-    return convert_ipv4(start) <= convert_ipv4(addr) <= convert_ipv4(end)
 #1 Function that opens the file and extracts the predefined columns and their respective values. Once this is done, it stores them in the dictionary mentioned above.
 def openfiles(filedict):
     for i in range(0, 2):
@@ -52,18 +43,7 @@ def Comp(stringtwo, persistent):
             print(f"Persistent IP: {ip.ip} - {ip.rede} - {ip.data_1} - {ip.data_2} - {ip.count}.")
             persistent[ip.ip] = (ip.rede, ip.data_1, ip.data_2, ip.count)
     print(f"Total Persistent IPs: {total}.")
-#3 Function that compares the IPs from the .csv file and sees in which network it belongs to. It returns a dictionary containing that information.
-def ListThem(stringcom, rede):
-    cont = 0
-    stringone = stringcom
-    for z in stringone:
-        cont += 1
-        for i in range(0, len(wordlist)):
-            x = tuple(ip_dict[wordlist[i]])
-            if check_ipv4_in(z, *x) == True:
-                rede[z] = network_names[i]
-                break
-#4 Function that creates a dictionary with the IPs, the network which it belongs to, the first and last time it was registered on the .csv file, and the total number of occurrences.
+#3 Function that creates a dictionary with the IPs, the network which it belongs to, the first and last time it was registered on the .csv file, and the total number of occurrences.
 def create_dict(filedict, listdic, rede):
     stringCreate = filedict[0]
     stringDate = filedict[1]
@@ -94,7 +74,7 @@ def create_dict(filedict, listdic, rede):
         Date1 = Date[0]
         Date2 = Date[1]
         listdic[i] = stringcom[i], rede[stringcom[i]], Date1, Date2, len(sortedDict[stringcom[i]])
-#5 Function that imports the information extracted from the .csv file to the db. It checks whether the IP is persistent and updates its fields in the db, or creates new entries.
+#4 Function that imports the information extracted from the .csv file to the db. It checks whether the IP is persistent and updates its fields in the db, or creates new entries.
 def import_to_db(listdic, persistent):
     for i in range(0, len(listdic)):
         sclice = list(listdic[i])
@@ -111,7 +91,7 @@ def import_to_db(listdic, persistent):
         else:
             new_mal = Mal(ip=sclice[0], rede=sclice[1], data_1=sclice[2], data_2=sclice[3], count=sclice[4])
             new_mal.save()
-#6 Main function that contains local variables to store and pass the information to the previous functions. In the end it prints on the screen the information extracted of the .csv files.
+#5 Main function that contains local variables to store and pass the information to the previous functions. In the end it prints on the screen the information extracted of the .csv files.
 def main(filedict):
     listdic = dict([])
     rede = dict([])
@@ -127,5 +107,4 @@ def main(filedict):
         sclice = list(listdic[i])
         print(f"{i + 1} - {sclice}")
     import_to_db(listdic, persistent)
-# Invocation of the main function.
-main(filedict)
+main(filedict) # Invocation of the main function.
