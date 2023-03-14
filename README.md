@@ -150,6 +150,14 @@ To build the docker container, execute the following command.
 docker-compose build
 ```
 
+## Certificates
+
+Execute the following script to generate the certificates for the Nginx container.
+
+```
+cd nginx && ./gencerts.sh
+```
+
 ## Start/Stop the RCTS Weekly Report Tool
 
 To start the container, execute the following command.
@@ -202,7 +210,7 @@ These variables can be found on the [docker-compose.yaml](./docker-compose.yml) 
 
 ## Nginx Reverse Proxy Config
 
-If you intend to use a different Nginx than the one provided, make sure to copy the `static` folder from inside the `src` directory into the Nginx server, and add the following lines to the config file.
+If you intend to use a different Nginx than the one provided, make sure to copy the `static` folder from inside the `src` directory located in the nginx directory into the Nginx server, and add the following lines to the config file.
 
 ```
 server {
