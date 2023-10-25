@@ -20,6 +20,8 @@ from ipv4 import check_ipv4_in
 path = os.getcwd() # Obtains the directory path.
 password = os.environ.get('PASSWORD') # Password to protect the content inside the zip file.
 fileToSearch = [(str(path) + '/upload/other.csv'), (str(path) + '/upload/vul.csv'), (str(path) + '/upload/mal.csv'), (str(path) + '/upload/other.txt'), (str(path) + '/upload/vul.txt'), (str(path) + '/upload/mal.txt'), (str(path) + '/upload/csv.zip'), (str(path) + '/upload/all_other.csv'), (str(path) + '/upload/all_mal.csv'), (str(path) + '/upload/all_vul.csv')] # List that joins the directory path and the subdirectories and names of the .csv files.
+other_and_mal_par_list = list(["ip", "rede", "data_1", "data_2", "count"]) # List of table field names, used by the API PUT and POST request, to verify if the field is present. If not, the field will be left blank. This allows the user to insert only the fields that have data.
+vul_par_list = list(["ip", "port", "rede", "data_1", "data_2", "count"]) # List of table field names, used by the API PUT and POST request, to verify if the field is present. If not, the field will be left blank. This allows the user to insert only the fields that have data.
 
 # Function that checks if the IP belongs to a network.
 def ListThem(ip, rede):
@@ -98,7 +100,15 @@ class OtherAPIView(APIView):
 
                 return Response(message)
         except:
-            new_other = Other.objects.create(ip=other_data["ip"], rede=other_data["rede"], data_1=other_data["data_1"], data_2=other_data["data_2"], count=other_data["count"])
+            tmp = dict([])
+
+            for k in other_and_mal_par_list:
+                try:
+                    tmp[k] = other_data[k]
+                except:
+                    tmp[k] = ""
+
+            new_other = Other.objects.create(ip=tmp[other_and_mal_par_list[0]], rede=tmp[other_and_mal_par_list[1]], data_1=tmp[other_and_mal_par_list[2]], data_2=otmp[other_and_mal_par_list[3]], count=tmp[other_and_mal_par_list[4]])
 
             new_other.save()
             serializer = OtherSerializer(new_other)
@@ -114,12 +124,21 @@ class OtherAPIView(APIView):
             return Response(message)
         else:
             data = request.data
+            tmp = dict([])
 
-            other_object.rede = data["rede"]
-            other_object.data_1 = data["data_1"]
-            other_object.data_2 = data["data_2"]
-            other_object.count = data["count"]
+            for k in other_and_mal_par_list:
+                tmp[k] = getattr(other_object, k)
 
+            for k in other_and_mal_par_list:
+                try:
+                    tmp[k] = data[k]
+                except:
+                    pass
+
+            other_object.rede = tmp["rede"]
+            other_object.data_1 = tmp["data_1"]
+            other_object.data_2 = tmp["data_2"]
+            other_object.count = tmp["count"]
             other_object.save()
 
             serializer = OtherSerializer(other_object)
@@ -163,7 +182,15 @@ class MalAPIView(APIView):
 
                 return Response(message)
         except:
-            new_mal = Mal.objects.create(ip=mal_data["ip"], rede=mal_data["rede"], data_1=mal_data["data_1"], data_2=mal_data["data_2"], count=mal_data["count"])
+            tmp = dict([])
+
+            for k in other_and_mal_par_list:
+                try:
+                    tmp[k] = mal_data[k]
+                except:
+                    tmp[k] = ""
+            
+            new_mal = Mal.objects.create(ip=tmp[other_and_mal_par_list[0]], rede=tmp[other_and_mal_par_list[1]], data_1=tmp[other_and_mal_par_list[2]], data_2=otmp[other_and_mal_par_list[3]], count=tmp[other_and_mal_par_list[4]])
 
             new_mal.save()
             serializer = MalSerializer(new_mal)
@@ -179,12 +206,21 @@ class MalAPIView(APIView):
             return Response(message)
         else:
             data = request.data
+            tmp = dict([])
 
-            mal_object.rede = data["rede"]
-            mal_object.data_1 = data["data_1"]
-            mal_object.data_2 = data["data_2"]
-            mal_object.count = data["count"]
+            for k in other_and_mal_par_list:
+                tmp[k] = getattr(mal_object, k)
 
+            for k in other_and_mal_par_list:
+                try:
+                    tmp[k] = data[k]
+                except:
+                    pass
+
+            mal_object.rede = tmp["rede"]
+            mal_object.data_1 = tmp["data_1"]
+            mal_object.data_2 = tmp["data_2"]
+            mal_object.count = tmp["count"]
             mal_object.save()
 
             serializer = MalSerializer(mal_object)
@@ -228,7 +264,15 @@ class VulAPIView(APIView):
 
                 return Response(message)
         except:
-            new_vul = Vul.objects.create(ip=vul_data["ip"], port=vul_data["port"], rede=vul_data["rede"], data_1=vul_data["data_1"], data_2=vul_data["data_2"], count=vul_data["count"])
+            tmp = dict([])
+
+            for k in vul_par_list:
+                try:
+                    tmp[k] = vul_data[k]
+                except:
+                    tmp[k] = ""
+
+            new_vul = Vul.objects.create(ip=tmp[vul_data[0]], port=tmp[vul_data[1]], rede=tmp[vul_data[2]], data_1=tmp[vul_data[3]], data_2=tmp[vul_data[4]], count=tmp[vul_data[5]])
 
             new_vul.save()
             serializer = VulSerializer(new_vul)
@@ -244,13 +288,22 @@ class VulAPIView(APIView):
             return Response(message)
         else:
             data = request.data
+            tmp = dict([])
 
-            vul_object.port = data["port"]
-            vul_object.rede = data["rede"]
-            vul_object.data_1 = data["data_1"]
-            vul_object.data_2 = data["data_2"]
-            vul_object.count = data["count"]
+            for k in vul_par_list:
+                tmp[k] = getattr(vul_object, k)
 
+            for k in vul_par_list:
+                try:
+                    tmp[k] = data[k]
+                except:
+                    pass
+
+            vul_object.port = tmp["port"]
+            vul_object.rede = tmp["rede"]
+            vul_object.data_1 = tmp["data_1"]
+            vul_object.data_2 = tmp["data_2"]
+            vul_object.count = tmp["count"]
             vul_object.save()
 
             serializer = VulSerializer(vul_object)
